@@ -1,0 +1,21 @@
+############## Testing Partition Throughput ##############
+
+
+kafka-topics.sh --bootstrap-server localhost:9092 --create --topic load-test --partitions 1 --replication-factor 1
+
+kafka-producer-perf-test.sh --producer.config config.properties --throughput 100000 --num-records 1000000 --record-size 1024 --topic load-test
+
+kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --messages 1000000 --topic load-test
+
+
+################### Moving partitions ###################
+
+kafka-topics.sh --bootstrap-server localhost:9092 --create --topic test --partitions 8 --replication-factor 1
+
+kafka-topics.sh --bootstrap-server localhost:9092 --topic test --describe
+
+kafka-producer-perf-test.sh --producer.config config.properties --throughput 1000 --num-records 10000 --record-size 1024 --topic test
+
+kafka-reassign-partitions.sh --bootstrap-server localhost:9092 --broker-list 1,2,3,4 --topics-to-move-json-file partitions.json --generate
+
+kafka-reassign-partitions.sh --bootstrap-server localhost:9092 --reassignment-json-file suggestion.json --execute
